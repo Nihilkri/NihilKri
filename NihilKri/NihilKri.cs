@@ -60,8 +60,8 @@ namespace NihilKri {
 		public static List<int> listpfact(int n) {
 			List<int> l =
 			new List<int>(); if(n == 0 || n == 1) { l.Add(n); return l; } if(n < 0) { n = -n; l.Add(-1); } int i = 2;
-			while(n >= 2 && i <= Math.Sqrt(n)) { if(n / (double)i == n / i) { l.Add(i); n /= i; } else i++; }
-			if(l.Count == 0) l.Add(n); return l;
+			while(n >= 2 && i <= Math.Sqrt(n)) { if(n / (double)i == n / i) { l.Add(i); n /= i; i = 2; } else i++; }
+			if(n > 1) l.Add(n); return l;
 		}
 
 		/// <summary>
