@@ -123,7 +123,14 @@ namespace NihilKri {
 	#region Custom Datatypes
 
 	public class i256 : IComparable<i256> {
+
+
 		private uint[] _i = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
+		//public static implicit operator i256(double l) { return new i256(l); }
+		//public static bool operator ==(i256 l, i256 r) { return (l._a == r._a) && (l._b == r._b); }
+		//public static bool operator !=(i256 l, i256 r) { return !((l._a == r._a) && (l._b == r._b)); }
 
 
 		public int CompareTo(i256 R) { return Sort(this, R); }
@@ -136,7 +143,19 @@ namespace NihilKri {
 
 	}
 	public class f256 : IComparable<f256> {
+		public f256() { }
+		//public f256(double n) { _i[0] = (uint)n; }
+		public f256(params double[] ns) { }
+		public f256(params f256[] ns) {
+
+
+		}
+
 		private uint[] _i = { 0, 0, 0, 0, 0, 0, 0, 0 };
+		//private i256 _i = 0;
+
+
+
 		public int CompareTo(f256 R) { return Sort(this, R); }
 		public static int Sort(f256 L, f256 R) {
 			if(L.Equals(null) && R.Equals(null)) return 0;
@@ -437,6 +456,13 @@ namespace NihilKri {
 
 	public class Matrix2 {
 		public Matrix2() : this(1, 1, 0.0) { }
+		public Matrix2(int nx) {
+			_x = nx; _y = nx;
+			_dat = new double[nx][]; for(int y = 0 ; y < nx ; y++) {
+				_dat[y] = new double[nx];
+				for(int x = 0 ; x < nx ; x++) { _dat[y][x] = (x == y) ? 1 : 0; }
+			}
+		}
 		public Matrix2(Matrix2 l) : this(l._dat) { }
 		public Matrix2(int nx, int ny, params double[] nd) {
 			_x = nx; _y = ny; int le = nd.GetLength(0), lo = 0;
@@ -450,6 +476,12 @@ namespace NihilKri {
 			_dat = new double[_y][]; for(int y = 0 ; y < _y ; y++) {
 				_dat[y] = new double[_x];
 				for(int x = 0 ; x < _x ; x++) { _dat[y][x] = nd[y][x]; }
+			}
+		}
+		public Matrix2(double[] nd) {
+			_y = nd.GetLength(0); _x = 1;
+			_dat = new double[_y][]; for(int y = 0 ; y < _y ; y++) {
+				_dat[y] = new double[_x]; { _dat[y][0] = nd[y]; }
 			}
 		}
 
@@ -470,6 +502,10 @@ namespace NihilKri {
 				for(int x = 0 ; x < _x ; x++) { t._dat[x][y] = _dat[y][x]; }
 			} return t;
 		}
+		public Matrix2 row(int y) {return new Matrix2(_dat[y]);}
+		public Matrix2 col(int x) {Matrix2 t = new Matrix2(1, _y);
+				for(int y = 0 ; y < _y ; x++) { t._dat[y][0] = _dat[y][x]; } return t; }
+		
 		public Matrix2 sub(int x1, int y1, int x2, int y2) {
 			Matrix2 t = new Matrix2(x2 - x1, y2 - y1);
 			for(int y = y1 ; y < y2 ; y++) {
