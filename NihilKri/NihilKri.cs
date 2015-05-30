@@ -219,9 +219,10 @@ namespace NihilKri {
 				//l = ((_r - pi/2.0) % (pi/2.0) + pi/2.0) / pi;
 				//l = ((_r - pi) % pi + pi) / tau;
 				//d = 0.0;
+				if(_r > 16.0) return ~0xFFFFFF + 0xFFFFFF;
 				l = _r % 1.0;
-				if(Math.Abs(l-Math.Round(l)) < 1.0 / 128.0) return ~0xFFFFFF + 0xFFFFFF; // Isolines
-				if(h > pi)
+				if(Math.Abs(l - Math.Round(l)) < 1.0 / 128.0) return ~0xFFFFFF + 0xFFFFFF; // Isolines
+				//if(h > pi)
 				l = Math.Min(_r, 1.0);
 				d = Math.Floor(_r)/255.0;
 				double H = h * 6.0 / tau; double C = l;// 1.0 - Math.Abs(2.0 * l - 1.0); 
