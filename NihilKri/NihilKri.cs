@@ -54,14 +54,24 @@ namespace NihilKri {
 		}
 
 		public static string pfact(int n) {
-			List<int> l = listpfact(n); string s = ""; for(int q = 0 ; q < l.Count - 1 ; q++)
+			List<int> l = listpfact(n); string s = "";
+			for(int q = 0 ; q < l.Count - 1 ; q++)
 				s += l[q] + ", "; return s + l[l.Count - 1];
 		}
 		public static List<int> listpfact(int n) {
-			List<int> l =
-			new List<int>(); if(n == 0 || n == 1) { l.Add(n); return l; } if(n < 0) { n = -n; l.Add(-1); } int i = 2;
-			while(n >= 2 && i <= Math.Sqrt(n)) { if(n / (double)i == n / i) { l.Add(i); n /= i; i = 2; } else i++; }
+			List<int> l = new List<int>(); if(n == 0 || n == 1) { l.Add(n); return l; }
+			if(n < 0) { n = -n; l.Add(-1); } int i = 2;
+			while(n >= 2 && i <= Math.Sqrt(n)) { if(n / (double)i == n / i)
+			{ l.Add(i); n /= i; i = 2; } else i++; }
 			if(n > 1) l.Add(n); return l;
+		}
+
+
+		public static List<List<int>> perms(List<int> ns) {
+			List<List<int>> l = new List<List<int>>(); if(ns.Count == 0 || ns.Count == 1) { l.Add(ns); return l; }
+
+
+			return l;
 		}
 
 		/// <summary>
@@ -89,8 +99,61 @@ namespace NihilKri {
 	}
 
 	public class Physics {
+		public const double PI = 3.14159265358979323846264338327950288419716939937510; // Diameter to Circumference
+		public const double AR = PI / 180.0; // Degrees to Radians
+		public const int    c  = 299792458; // Speed of light, in m/s
+		public const double G  = 6.673848e-11; // Gravitational Constant, in m3/kg/s2 or N(m/kg)2
+		public const double h  = 6.6260695729e-34; // Planck Constant, in J*s or N*m*s or kg*m2/s
+		public const double hb = h / 2 / PI; // Reduced Planck Constant, in J*s or N*m*s or kg*m2/s
+		public const double kB = 1.380648813e-23; // Bolzmann's Constant, in J/K
+		public const double SB = 5.67037321e-8; // Stefan-Boltzmann Constant, in W/m2/K4 or J/s/m2/K4
 
 
+		/// <summary>
+		/// Force of Gravity between two masses at a certain distance
+		/// </summary>
+		/// <param name="m1">Mass 1</param>
+		/// <param name="m2">Mass 2</param>
+		/// <param name="r">Distance between them</param>
+		/// <returns></returns>
+		public static double Fg(double m1, double m2, double r) { return G * ((m1 * m2) / (r * r)); }
+
+	}
+
+	#region Custom Datatypes
+
+	public class i256 : IComparable<i256> {
+		private uint[] _i = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
+		public int CompareTo(i256 R) { return Sort(this, R); }
+		public static int Sort(i256 L, i256 R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._i[0] == R._i[0]) return 0;
+			return 0;
+		}
+
+	}
+	public class f256 : IComparable<f256> {
+		private uint[] _i = { 0, 0, 0, 0, 0, 0, 0, 0 };
+		public int CompareTo(f256 R) { return Sort(this, R); }
+		public static int Sort(f256 L, f256 R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._i[0] == R._i[0]) return 0;
+			return 0;
+		}
+	}
+	public class fX : IComparable<fX> {
+		private uint[] _i = { 0 };
+		public int CompareTo(fX R) { return Sort(this, R); }
+		public static int Sort(fX L, fX R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._i[0] == R._i[0]) return 0;
+			return 0;
+		}
 	}
 
 	public class Complex : IComparable<Complex> {
@@ -234,7 +297,7 @@ namespace NihilKri {
 
 	}
 
-	public class Quaternion {
+	public class Quaternion : IComparable<Quaternion> {
 		public Quaternion(Quaternion l) { abi(l._a, l._b, l._c, l._d); }
 		public Quaternion(Complex na, Complex nb) { abi(na.a, na.b, nb.a, nb.b); }
 		public Quaternion(double na, double nb, double nc, double nd) { abi(na, nb, nc, nd); }
@@ -347,49 +410,105 @@ namespace NihilKri {
 		//}
 
 
+		public int CompareTo(Quaternion R) { return SortR(this, R); }
+		public static int SortA(Quaternion L, Quaternion R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._a == R._a) return L._b.CompareTo(R._b); return L._a.CompareTo(R._a);
+		}
+		public static int SortB(Quaternion L, Quaternion R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._b == R._b) return L._a.CompareTo(R._a); return L._b.CompareTo(R._b);
+		}
+		public static int SortR(Quaternion L, Quaternion R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._r == R._r) return L._t.CompareTo(R._t); return L._r.CompareTo(R._r);
+		}
+		public static int SortT(Quaternion L, Quaternion R) {
+			if(L.Equals(null) && R.Equals(null)) return 0;
+			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L._t == R._t) return L._r.CompareTo(R._r); return L._t.CompareTo(R._t);
+		}
+
+
 	}
 
 	public class Matrix2 {
-		public Matrix2(Matrix2 l) : this(l.dat) { }
+		public Matrix2() : this(1, 1, 0.0) { }
+		public Matrix2(Matrix2 l) : this(l._dat) { }
 		public Matrix2(int nx, int ny, params double[] nd) {
 			_x = nx; _y = ny; int le = nd.GetLength(0), lo = 0;
-			dat = new double[ny][]; for(int y = 0 ; y < ny ; y++) {
-				dat[y] = new double[nx];
-				for(int x = 0 ; x < nx ; x++) { lo = y * nx + x; dat[y][x] = (lo < le) ? nd[lo] : 0; }
+			_dat = new double[ny][]; for(int y = 0 ; y < ny ; y++) {
+				_dat[y] = new double[nx];
+				for(int x = 0 ; x < nx ; x++) { lo = y * nx + x; _dat[y][x] = (lo < le) ? nd[lo] : 0; }
 			}
 		}
 		public Matrix2(double[][] nd) {
 			_y = nd.GetLength(0); _x = nd[0].GetLength(0);
-			dat = new double[_y][]; for(int y = 0 ; y < _y ; y++) {
-				dat[y] = new double[_x];
-				for(int x = 0 ; x < _x ; x++) { dat[y][x] = nd[y][x]; }
+			_dat = new double[_y][]; for(int y = 0 ; y < _y ; y++) {
+				_dat[y] = new double[_x];
+				for(int x = 0 ; x < _x ; x++) { _dat[y][x] = nd[y][x]; }
 			}
 		}
 
 		public override bool Equals(object obj) { return base.Equals(obj); }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() {
-			string s = "{"; for(int y = 0 ; y < dat.GetLength(0) ; y++) {
+			string s = "{"; for(int y = 0 ; y < _dat.GetLength(0) ; y++) {
 				s += "[ ";
-				for(int x = 0 ; x < dat[y].GetLength(0) ; x++) { s += dat[y][x] + " "; } s += "]";
+				for(int x = 0 ; x < _dat[y].GetLength(0) ; x++) { s += _dat[y][x] + " "; } s += "]";
 			} return (s += "}");
 		}
 
-		private double[][] dat; private readonly int _x, _y;
-		public double this[int x, int y] { get { return dat[y - 1][x - 1]; } set { dat[y - 1][x - 1] = value; } }
+		private double[][] _dat; private readonly int _x, _y;
+		public double this[int x, int y] { get { return _dat[y][x]; } set { _dat[y][x] = value; } }
 
 		public Matrix2 T() {
 			Matrix2 t = new Matrix2(_y, _x); for(int y = 0 ; y < _y ; y++) {
-				for(int x = 0 ; x < _x ; x++) { t.dat[x][y] = dat[y][x]; }
+				for(int x = 0 ; x < _x ; x++) { t._dat[x][y] = _dat[y][x]; }
 			} return t;
+		}
+		public Matrix2 sub(int x1, int y1, int x2, int y2) {
+			Matrix2 t = new Matrix2(x2 - x1, y2 - y1);
+			for(int y = y1 ; y < y2 ; y++) {
+				for(int x = x1 ; x < x2 ; x++) {
+					if(x > _x || y > _y) t._dat[y][x] = 0.0;
+					else t._dat[y][x] = _dat[y - y1][x - x1];
+				}
+			} return t;
+		}
+		public Matrix2 minor(int x1, int y1) {
+			//if(x1 < 0 || x1 >= _x || y1 < 0 || y1 >= _y) return this;
+			x1 = Math.Max(Math.Min(x1, _x - 1), 0); y1 = Math.Max(Math.Min(y1, _y - 1), 0);
+			Matrix2 t = new Matrix2(_x - 1, _y - 1);
+			for(int y = 0 ; y < _y - 1 ; y++) {//if(y == y1) continue;
+				for(int x = 0 ; x < _x - 1 ; x++) {//if(x == x1) continue;
+					t._dat[y][x] = _dat[y + (y >= y1 ? 1 : 0)][x + (x >= x1 ? 1 : 0)];
+				}
+			}
+			return t;
+		}
+		public double det() {
+			if(_x != _y) return Double.NaN;
+			if(_x == 1 && _y == 1) return _dat[0][0];
+			double d = 0, dr = 0, dl = 0;
+			Matrix2 m;
+			for(int x = 0 ; x < _x ; x++) {
+				m = minor(x, 0); dr = _dat[0][x]; dl = (x % 2 == 1 ? -1 : 1);
+				d += dl * dr * m.det();
+
+			}
+			return d;
 		}
 
 		public static Matrix2 operator +(Matrix2 l, Matrix2 r) {
 			Matrix2 t = new Matrix2(Math.Max(l._y, r._y), Math.Max(l._x, r._x));
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = ((y < l._y && x < l._x) ? l.dat[y][x] : 0)
-						+ ((y < r._y && x < r._x) ? r.dat[y][x] : 0);
+					t._dat[y][x] = ((y < l._y && x < l._x) ? l._dat[y][x] : 0)
+						+ ((y < r._y && x < r._x) ? r._dat[y][x] : 0);
 				}
 			} return t;
 		}
@@ -397,7 +516,7 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(l._y, l._x);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = l.dat[y][x] + r;
+					t._dat[y][x] = l._dat[y][x] + r;
 				}
 			} return t;
 		}
@@ -405,7 +524,7 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(r._y, r._x);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = l + r.dat[y][x];
+					t._dat[y][x] = l + r._dat[y][x];
 				}
 			} return t;
 		}
@@ -413,8 +532,8 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(Math.Max(l._y, r._y), Math.Max(l._x, r._x));
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = ((y < l._y && x < l._x) ? l.dat[y][x] : 0)
-						- ((y < r._y && x < r._x) ? r.dat[y][x] : 0);
+					t._dat[y][x] = ((y < l._y && x < l._x) ? l._dat[y][x] : 0)
+						- ((y < r._y && x < r._x) ? r._dat[y][x] : 0);
 				}
 			} return t;
 		}
@@ -422,7 +541,7 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(l._y, l._x);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = l.dat[y][x] - r;
+					t._dat[y][x] = l._dat[y][x] - r;
 				}
 			} return t;
 		}
@@ -430,7 +549,7 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(r._y, r._x);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = l - r.dat[y][x];
+					t._dat[y][x] = l - r._dat[y][x];
 				}
 			} return t;
 		}
@@ -440,8 +559,8 @@ namespace NihilKri {
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
 
-					t.dat[y][x] = ((y < l._y && x < l._x) ? l.dat[y][x] : 0)
-						- ((y < r._y && x < r._x) ? r.dat[y][x] : 0);
+					t._dat[y][x] = ((y < l._y && x < l._x) ? l._dat[y][x] : 0)
+						- ((y < r._y && x < r._x) ? r._dat[y][x] : 0);
 				}
 			} return t;
 		}
@@ -449,7 +568,7 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(l._y, l._x);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = l.dat[y][x] * r;
+					t._dat[y][x] = l._dat[y][x] * r;
 				}
 			} return t;
 		}
@@ -457,7 +576,7 @@ namespace NihilKri {
 			Matrix2 t = new Matrix2(r._y, r._x);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-					t.dat[y][x] = l * r.dat[y][x];
+					t._dat[y][x] = l * r._dat[y][x];
 				}
 			} return t;
 		}
@@ -466,6 +585,8 @@ namespace NihilKri {
 
 
 	}
+
+	#endregion Custom Datatypes
 
 
 	public class NeuralNetwork {
