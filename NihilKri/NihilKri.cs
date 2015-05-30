@@ -27,9 +27,10 @@ namespace NihilKri {
 
 			Matrix2 AA = new Matrix2(4, 2, 1, 2, 3, 4, 5, 6, 7, 8);
 			Matrix2 BB = new Matrix2(2, 4, 8, 7, 6, 5, 4, 3, 2, 1);
-			return "AA = " + AA.ToString() + ", BB = " + BB.ToString()
-				+ "\n, AA+BB = " + (AA + BB).ToString()
-				+ "\n, DET = " + (AA + BB).det();
+			Matrix2 CC = new Matrix2(new double[,] {{8, 7, 6, 5},{4, 3, 2, 1}});
+			return "AA = " + AA.ToString() + ", BB = " + BB.ToString() + ", CC = " + CC.ToString()
+				+ "\n, BB*AA = " + (BB.T() * AA.T()).ToString()
+				+ "\n, DET = " + (BB.T() * AA.T()).det();
 
 			//Swap variables
 			//int a=43, b=78;
@@ -482,17 +483,18 @@ namespace NihilKri {
 			_dat = new double[_y,_x]; for(int y = 0 ; y < _y ; y++)
 				for(int x = 0 ; x < _x ; x++) { _dat[y,x] = nd[y,x]; }
 		}
-		public Matrix2(double[] nd) {
-			_y = nd.GetLength(0); _x = 1;
-			_dat = new double[_y,_x]; for(int y = 0 ; y < _y ; y++)
-				{ _dat[y,0] = nd[y]; }
+		public Matrix2(double[] nd, bool row = false) {
+			if(row) { _y = 1; _x = nd.GetLength(0);
+				_dat = new double[_y, _x]; for(int x = 0 ; x < _x ; x++) { _dat[0, x] = nd[x]; }
+			} else { _y = nd.GetLength(0); _x = 1;
+				_dat = new double[_y, _x]; for(int y = 0 ; y < _y ; y++) { _dat[y, 0] = nd[y]; }
+			}
 		}
 
 		public override bool Equals(object obj) { return base.Equals(obj); }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() {
-			string s = "{"; for(int y = 0 ; y < _dat.GetLength(0) ; y++) {
-				s += "[ ";
+			string s = "{"; for(int y = 0 ; y < _dat.GetLength(0) ; y++) { s += "[ ";
 				for(int x = 0 ; x < _dat.GetLength(1) ; x++) { s += _dat[y,x] + " "; } s += "]";
 			} return (s += "}");
 		}
@@ -593,14 +595,25 @@ namespace NihilKri {
 				}
 			} return t;
 		}
+		//public static Matrix2 operator *(Matrix2 l, Matrix2 r) {
+		//	Matrix2 t = new Matrix2(Math.Max(l._y, r._y), Math.Max(l._x, r._x));
+		//	int z = 0;
+		//	for(int y = 0 ; y < t._y ; y++) {
+		//		for(int x = 0 ; x < t._x ; x++) {
+
+		//			t._dat[y,x] = ((y < l._y && x < l._x) ? l._dat[y,x] : 0)
+		//				- ((y < r._y && x < r._x) ? r._dat[y,x] : 0);
+		//		}
+		//	} return t;
+		//}
 		public static Matrix2 operator *(Matrix2 l, Matrix2 r) {
-			Matrix2 t = new Matrix2(Math.Max(l._y, r._y), Math.Max(l._x, r._x));
-			int z = 0;
+			if(l._y != r._x) return new Matrix2(1, 1, Double.NaN);
+			Matrix2 t = new Matrix2(r._x, l._y);
 			for(int y = 0 ; y < t._y ; y++) {
 				for(int x = 0 ; x < t._x ; x++) {
-
-					t._dat[y,x] = ((y < l._y && x < l._x) ? l._dat[y,x] : 0)
-						- ((y < r._y && x < r._x) ? r._dat[y,x] : 0);
+					for(int z = 0 ; z < l._x ; z++) {
+						t._dat[y, x] += l._dat[y, z] * r._dat[z, x];
+					}
 				}
 			} return t;
 		}
