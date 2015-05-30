@@ -29,9 +29,13 @@ namespace NihilKri {
 			//Matrix2 BB = new Matrix2(2, 4, 8, 7, 6, 5, 4, 3, 2, 1);
 			//return "AA = " + AA.ToString() + ", BB = " + BB.ToString() + ", AA+BB = " + (AA + BB).ToString();
 
-			int a=43, b=78;
-			b = (a = a ^ b) ^ b; a = a ^ b;
-			return a.ToString() + ", " + b.ToString();
+			//Swap variables
+			//int a=43, b=78;
+			//b = (a = a ^ b) ^ b; a = a ^ b;
+			//return a.ToString() + ", " + b.ToString();
+
+			Complex a = 3 + 2 * Complex.i;
+			return a.ToString();
 
 		}
 
@@ -209,14 +213,17 @@ namespace NihilKri {
 		public int c {
 			get {
 				double ca = 1.0, cr = 0.0, cg = 0.0, cb = 0.0;
-				double h = (_t + tau) % tau;
-				//double l = ((_r - 1.0) % 1.0 + 1.0) / 1.0;
-				//double l = ((_r - 0.5) % 0.5 + 0.5) / 1.0;
-				//double l = ((_r - pi/2.0) % (pi/2.0) + pi/2.0) / pi;
-				//double l = ((_r - pi) % pi + pi) / tau;
-				//double d = 0.0;
-				double l = _r % 1.0;
-				double d = Math.Floor(_r)/255.0;
+				double h = (_t + tau) % tau, l = 0.0, d = 0.0;
+				//l = ((_r - 1.0) % 1.0 + 1.0) / 1.0;
+				//l = ((_r - 0.5) % 0.5 + 0.5) / 1.0;
+				//l = ((_r - pi/2.0) % (pi/2.0) + pi/2.0) / pi;
+				//l = ((_r - pi) % pi + pi) / tau;
+				//d = 0.0;
+				l = _r % 1.0;
+				if(Math.Abs(l-Math.Round(l)) < 1.0 / 128.0) return ~0xFFFFFF + 0xFFFFFF; // Isolines
+				if(h > pi)
+				l = Math.Min(_r, 1.0);
+				d = Math.Floor(_r)/255.0;
 				double H = h * 6.0 / tau; double C = l;// 1.0 - Math.Abs(2.0 * l - 1.0); 
 				double X = C * (1.0 - Math.Abs((H % 2.0) - 1.0)), m = l - C;// / 2;
 				switch((int)Math.Floor(H)) {
