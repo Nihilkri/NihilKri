@@ -25,12 +25,12 @@ namespace NihilKri {
 			//}
 			//return s.ToString();
 
-			Matrix2 AA = new Matrix2(4, 2, 1, 2, 3, 4, 5, 6, 7, 8);
-			Matrix2 BB = new Matrix2(2, 4, 8, 7, 6, 5, 4, 3, 2, 1);
-			Matrix2 CC = new Matrix2(new double[,] {{8, 7, 6, 5},{4, 3, 2, 1}});
-			return "AA = " + AA.ToString() + ", BB = " + BB.ToString() + ", CC = " + CC.ToString()
-				+ "\n, BB*AA = " + (BB.T() * AA.T()).ToString()
-				+ "\n, DET = " + (BB.T() * AA.T()).det();
+			//Matrix2 AA = new Matrix2(4, 2, 1, 2, 3, 4, 5, 6, 7, 8);
+			//Matrix2 BB = new Matrix2(2, 4, 8, 7, 6, 5, 4, 3, 2, 1);
+			//Matrix2 CC = new Matrix2(new double[,] {{8, 7, 6, 5},{4, 3, 2, 1}});
+			//return "AA = " + AA.ToString() + ", BB = " + BB.ToString() + ", CC = " + CC.ToString()
+			//	+ "\n, BB*AA = " + (BB.T() * AA.T()).ToString()
+			//	+ "\n, DET = " + (BB.T() * AA.T()).det();
 
 			//Swap variables
 			//int a=43, b=78;
@@ -40,9 +40,18 @@ namespace NihilKri {
 			//Complex a = 3 + 2 * Complex.i;
 			//return a.ToString();
 
+			i256 a = -1000.0;
+			return a.ToString() + "\n" + a.ToString(true);
+
 		}
 
-
+		public static string hex(byte N) { return hex(N, 8); }
+		public static string hex(int N) { return hex(N, 32); }
+		public static string hex(long N, int m = 64) {
+			string s = ""; ulong n; if(N >= 0) { n = (ulong)N; } else { n = (ulong)(~N + 1); n = ~n + 1; }
+			for(int q = 0 ; q < m ; q++) { if(n % 2 == 0) { s += "1"; } else { s += "0"; } n >>= 1; }
+			return s;
+		}
 		public static string hex(double N) {
 			long n = BitConverter.DoubleToInt64Bits(N);
 			int sign = (((n & ~0x7FFFFFFFFFFFFFFFL) >> 63) == 0) ? 1 : -1;
@@ -130,21 +139,29 @@ namespace NihilKri {
 	#region Custom Datatypes
 
 	public class i256 : IComparable<i256> {
+		public i256() { }
+		public i256(long n) { BitConverter.GetBytes(n).CopyTo(_b, 0); }
+		public i256(double n) { BitConverter.GetBytes(n).CopyTo(_b, 0); }
+		public override bool Equals(object obj) { return base.Equals(obj); }
+		public override int GetHashCode() { return base.GetHashCode(); }
+		public override string ToString() { string s = "{"; for(int q = 0 ; q < 31 ; q++) s += _b[q] + ","; return s + _b[31] + "}"; }
+		public string ToString(bool b) { string s = "{"; for(int q = 0 ; q < 31 ; q++) s += (b ? KN.hex(_b[q]) : _b[q].ToString()) + ","; return s + _b[31] + "}"; }
 
 
-		private uint[] _i = { 0, 0, 0, 0, 0, 0, 0, 0 };
+		private byte[] _b = new byte[32];// { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 
-		//public static implicit operator i256(double l) { return new i256(l); }
-		//public static bool operator ==(i256 l, i256 r) { return (l._a == r._a) && (l._b == r._b); }
-		//public static bool operator !=(i256 l, i256 r) { return !((l._a == r._a) && (l._b == r._b)); }
+		public static implicit operator i256(long l) { return new i256(l); }
+		public static implicit operator i256(double l) { return new i256(l); }
+		public static bool operator ==(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._b[q] != r._b[q]) return false; return true; }
+		public static bool operator !=(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._b[q] != r._b[q]) return true; return false; }
 
 
 		public int CompareTo(i256 R) { return Sort(this, R); }
 		public static int Sort(i256 L, i256 R) {
 			if(L.Equals(null) && R.Equals(null)) return 0;
 			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
-			if(L._i[0] == R._i[0]) return 0;
+			if(L._b[0] == R._b[0]) return 0;
 			return 0;
 		}
 
@@ -224,7 +241,8 @@ namespace NihilKri {
 				//d = 0.0;
 				if(_r > 16.0) return ~0xFFFFFF + 0xFFFFFF;
 				l = _r % 1.0;
-				if(Math.Abs(l - Math.Round(l)) < 1.0 / 128.0) return ~0xFFFFFF + 0xFFFFFF; // Isolines
+				if(Math.Abs(_r) < 1.0 / 128.0) return ~0xFFFFFF; // 0
+				if(Math.Abs(_r - Math.Round(_r)) < 1.0 / 128.0) return ~0xFFFFFF + 0xFFFFFF; // Isolines
 				//if(h > pi)
 				l = Math.Min(_r, 1.0);
 				d = Math.Floor(_r)/255.0;
