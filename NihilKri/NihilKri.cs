@@ -250,13 +250,13 @@ namespace NihilKri {
 		public double t { get { return _t; } set { cis(_r, value); } }
 		public double r2 { get { return _r2; } set { cis(Math.Sqrt(value), _t); _r2 = value; } }
 		public void abi(double na, double nb) {
-			_a = na; _b = nb; _r2 = _a * _a + _b * _b; _r = Math.Sqrt(_r2);
-			if(Math.Abs(_a) < _r / (2 << 24)) _a = 0.0; if(Math.Abs(_b) < _r / (2 << 24)) _b = 0.0;
+			_a = na; _b = nb; //_r2 = _a * _a + _b * _b; _r = Math.Sqrt(_r2);
+			//if(Math.Abs(_a) < _r / (2 << 24)) _a = 0.0; if(Math.Abs(_b) < _r / (2 << 24)) _b = 0.0;
 			_r2 = _a * _a + _b * _b; _r = Math.Sqrt(_r2); _t = Math.Atan2(_b, _a);
 		}
 		public void cis(double nr, double nth) {
 			_r = nr; _t = nth; _a = _r * Math.Cos(_t); _b = _r * Math.Sin(_t); _r2 = _r * _r;
-			if(Math.Abs(_a) < _r / (2 << 24)) _a = 0.0; if(Math.Abs(_b) < _r / (2 << 24)) _b = 0.0;
+			//if(Math.Abs(_a) < _r / (2 << 24)) _a = 0.0; if(Math.Abs(_b) < _r / (2 << 24)) _b = 0.0;
 		}
 		public int c {
 			get {
