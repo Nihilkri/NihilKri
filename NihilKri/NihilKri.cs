@@ -40,7 +40,9 @@ namespace NihilKri {
 			//Complex a = 3 + 2 * Complex.i;
 			//return a.ToString();
 
-			i256 a = -1000.0;
+			//i256 a = -1000.0; 
+			//i256 a = new i256(false, 1, 2, 3, 4, 5, 6, 7, 8);
+			i256 a = 60000, b = 6000;
 			return a.ToString() + "\n" + a.ToString(true);
 
 		}
@@ -48,8 +50,8 @@ namespace NihilKri {
 		public static string hex(byte N) { return hex(N, 8); }
 		public static string hex(int N) { return hex(N, 32); }
 		public static string hex(long N, int m = 64) {
-			string s = ""; ulong n; if(N >= 0) { n = (ulong)N; } else { n = (ulong)(~N + 1); n = ~n + 1; }
-			for(int q = 0 ; q < m ; q++) { if(n % 2 == 0) { s += "1"; } else { s += "0"; } n >>= 1; }
+			string s = ""; ulong n; if(N >= 0) { n = (ulong)N; } else { n = (ulong)(~N + 1); }
+			for(int q = 0 ; q < m ; q++) { if(n % 2 == 0) { s += "0"; } else { s += "1"; } n >>= 1; }
 			return s;
 		}
 		public static string hex(double N) {
@@ -140,21 +142,47 @@ namespace NihilKri {
 
 	public class i256 : IComparable<i256> {
 		public i256() { }
+		public i256(bool neg = false, params byte[] ns) { ns.CopyTo(_b, 0); }
 		public i256(long n) { BitConverter.GetBytes(n).CopyTo(_b, 0); }
 		public i256(double n) { BitConverter.GetBytes(n).CopyTo(_b, 0); }
 		public override bool Equals(object obj) { return base.Equals(obj); }
 		public override int GetHashCode() { return base.GetHashCode(); }
-		public override string ToString() { string s = "{"; for(int q = 0 ; q < 31 ; q++) s += _b[q] + ","; return s + _b[31] + "}"; }
-		public string ToString(bool b) { string s = "{"; for(int q = 0 ; q < 31 ; q++) s += (b ? KN.hex(_b[q]) : _b[q].ToString()) + ","; return s + _b[31] + "}"; }
+		public override string ToString() {
+			string s = "{";
+			for(int q = 0 ; q < 31 ; q++)
+				s += _b[q] + (q % 4 == 3 ? "\n" : ", ");
+			return s + _b[31] + "}";
+		}
+		public string ToString(bool b) {
+			string s = "{";
+			for(int q = 0 ; q < 31 ; q++)
+				s += (b ? KN.hex(_b[q]) : _b[q].ToString()) + (q % 4 == 3 ? "\n" : ", ");
+			return s + (b ? KN.hex(_b[31]) : _b[31].ToString()) + "}";
+		}
 
 
 		private byte[] _b = new byte[32];// { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 
+		public static implicit operator long(i256 l) { return BitConverter.ToInt64(l._b, 0); }
 		public static implicit operator i256(long l) { return new i256(l); }
 		public static implicit operator i256(double l) { return new i256(l); }
 		public static bool operator ==(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._b[q] != r._b[q]) return false; return true; }
 		public static bool operator !=(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._b[q] != r._b[q]) return true; return false; }
+		public static i256 operator ~(i256 l) {
+			i256 e = 0;
+			for(int q = 0 ; q < 32 ; q++) { e._b[q] = (byte)(~l._b[q] & 255); }
+			return e;
+		}
+		public static i256 operator +(i256 l, i256 r) {
+			int ov = 0, v = 0; i256 e = 0;
+			for(int q = 0 ; q < 32 ; q++) {
+				v = l._b[q] + r._b[q] + ov;
+				ov = v >> 8; e._b[q] = (byte)(v & 255);
+			}
+			return e;
+		}
+
 
 
 		public int CompareTo(i256 R) { return Sort(this, R); }
