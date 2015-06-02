@@ -142,43 +142,44 @@ namespace NihilKri {
 
 	public class i256 : IComparable<i256> {
 		public i256() { }
-		public i256(bool neg = false, params byte[] ns) { ns.CopyTo(_b, 0); }
-		public i256(long n) { BitConverter.GetBytes(n).CopyTo(_b, 0); }
-		public i256(double n) { BitConverter.GetBytes(n).CopyTo(_b, 0); }
+		public i256(bool neg = false, params byte[] ns) { ns.CopyTo(_i, 0); }
+		public i256(long n) { BitConverter.GetBytes(n).CopyTo(_i, 0); }
+		public i256(double n) { BitConverter.GetBytes(n).CopyTo(_i, 0); }
 		public override bool Equals(object obj) { return base.Equals(obj); }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() {
 			string s = "{";
 			for(int q = 0 ; q < 31 ; q++)
-				s += _b[q] + (q % 4 == 3 ? "\n" : ", ");
-			return s + _b[31] + "}";
+				s += _i[q] + (q % 4 == 3 ? "\n" : ", ");
+			return s + _i[31] + "}";
 		}
 		public string ToString(bool b) {
 			string s = "{";
 			for(int q = 0 ; q < 31 ; q++)
-				s += (b ? KN.hex(_b[q]) : _b[q].ToString()) + (q % 4 == 3 ? "\n" : ", ");
-			return s + (b ? KN.hex(_b[31]) : _b[31].ToString()) + "}";
+				s += (b ? KN.hex(_i[q]) : _i[q].ToString()) + (q % 4 == 3 ? "\n" : ", ");
+			return s + (b ? KN.hex(_i[31]) : _i[31].ToString()) + "}";
 		}
 
 
-		private byte[] _b = new byte[32];// { 0, 0, 0, 0, 0, 0, 0, 0 };
+		private byte[] _i = new byte[32];// { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 
-		public static implicit operator long(i256 l) { return BitConverter.ToInt64(l._b, 0); }
+		public static implicit operator long(i256 l) { return BitConverter.ToInt64(l._i, 0); }
 		public static implicit operator i256(long l) { return new i256(l); }
 		public static implicit operator i256(double l) { return new i256(l); }
-		public static bool operator ==(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._b[q] != r._b[q]) return false; return true; }
-		public static bool operator !=(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._b[q] != r._b[q]) return true; return false; }
+		public static bool operator ==(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._i[q] != r._i[q]) return false; return true; }
+		public static bool operator !=(i256 l, i256 r) { for(int q = 0 ; q < 32 ; q++) if(l._i[q] != r._i[q]) return true; return false; }
 		public static i256 operator ~(i256 l) {
 			i256 e = 0;
-			for(int q = 0 ; q < 32 ; q++) { e._b[q] = (byte)(~l._b[q] & 255); }
+			for(int q = 0 ; q < 32 ; q++) { e._i[q] = (byte)(~l._i[q] & 255); }
 			return e;
 		}
 		public static i256 operator +(i256 l, i256 r) {
 			int ov = 0, v = 0; i256 e = 0;
 			for(int q = 0 ; q < 32 ; q++) {
-				v = l._b[q] + r._b[q] + ov;
-				ov = v >> 8; e._b[q] = (byte)(v & 255);
+				v = l._i[q] + r._i[q] + ov;
+				ov = v >> 8; e._i[q] = (byte)(v & 255);
+				//ov = v >> 32; e._i[q] = (uint)(v & ~0u);
 			}
 			return e;
 		}
@@ -189,7 +190,7 @@ namespace NihilKri {
 		public static int Sort(i256 L, i256 R) {
 			if(L.Equals(null) && R.Equals(null)) return 0;
 			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
-			if(L._b[0] == R._b[0]) return 0;
+			if(L._i[0] == R._i[0]) return 0;
 			return 0;
 		}
 
@@ -228,8 +229,10 @@ namespace NihilKri {
 	}
 
 	public class Complex : IComparable<Complex> {
-		public Complex(Complex l) { abi(l._a, l._b); }
-		public Complex(double na, double nb) { abi(na, nb); }
+		public Complex(Complex l) { _a = l._a; _b = l._b; }
+		public Complex(double na, double nb) { _a = na; _b = nb; }
+		public Complex(Complex l, bool q) { abi(l._a, l._b, q); }
+		public Complex(double na, double nb, bool q) { abi(na, nb, q); }
 		public override bool Equals(object obj) { return base.Equals(obj); }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() { return ToAbi() + "|" + ToCis(); }
@@ -243,16 +246,20 @@ namespace NihilKri {
 		public const double tau = 2 * pi;
 		public static readonly Complex i = new Complex(0, 1);
 
-		private double _a, _b, _r, _t, _r2;
+		private double _a, _b, _r, _t, _r2; private bool quick = true;
 		public double a { get { return _a; } set { abi(value, _b); } }
 		public double b { get { return _b; } set { abi(_a, value); } }
-		public double r { get { return _r; } set { cis(value, _t); } }
-		public double t { get { return _t; } set { cis(_r, value); } }
-		public double r2 { get { return _r2; } set { cis(Math.Sqrt(value), _t); _r2 = value; } }
-		public void abi(double na, double nb) {
+		public double r { get { if(quick) abi(_a, _b, true); return _r; }
+			set { if(quick) abi(_a, _b, true); cis(value, _t); }}
+		public double t { get { if(quick) abi(_a, _b, true); return _t; }
+			set { if(quick) abi(_a, _b, true); cis(_r, value); }}
+		public double r2 { get { if(quick) abi(_a, _b, true); return _r2; }
+			set { if(quick) abi(_a, _b, true); cis(Math.Sqrt(value), _t); _r2 = value; }}
+		public void abi(double na, double nb) { _a = na; _b = nb; }
+		public void abi(double na, double nb, bool q) {
 			_a = na; _b = nb; //_r2 = _a * _a + _b * _b; _r = Math.Sqrt(_r2);
 			//if(Math.Abs(_a) < _r / (2 << 24)) _a = 0.0; if(Math.Abs(_b) < _r / (2 << 24)) _b = 0.0;
-			_r2 = _a * _a + _b * _b; _r = Math.Sqrt(_r2); _t = Math.Atan2(_b, _a);
+			_r2 = _a * _a + _b * _b; _r = Math.Sqrt(_r2); _t = Math.Atan2(_b, _a); quick = false;
 		}
 		public void cis(double nr, double nth) {
 			_r = nr; _t = nth; _a = _r * Math.Cos(_t); _b = _r * Math.Sin(_t); _r2 = _r * _r;
@@ -260,6 +267,7 @@ namespace NihilKri {
 		}
 		public int c {
 			get {
+				if(quick) abi(_a, _b, true);
 				double ca = 1.0, cr = 0.0, cg = 0.0, cb = 0.0;
 				double h = (_t + tau) % tau, l = 0.0, d = 0.0;
 				//l = ((_r - 1.0) % 1.0 + 1.0) / 1.0;
@@ -301,50 +309,51 @@ namespace NihilKri {
 		}
 
 		public Complex conj() { return new Complex(_a, -_b); }
-		public Complex norm() { return this / _r; }
-		public Complex sqrt() { return new Complex(Math.Sqrt((_a + _r) / 2), Math.Sign(_b) * Math.Sqrt((-_a + _r) / 2)); }
-		public Complex ln() { return new Complex(Math.Log(_r), _t); }
+		public Complex norm() { if(quick) abi(_a, _b, true); return this / _r; }
+		public Complex sqrt() { if(quick) abi(_a, _b, true); return new Complex(Math.Sqrt((_a + _r) / 2), Math.Sign(_b) * Math.Sqrt((-_a + _r) / 2)); }
+		public Complex ln() { if(quick) abi(_a, _b, true); return new Complex(Math.Log(_r), _t); }
 		public Complex exp() { return Cis(Math.Exp(_a), _b); }
 
 		public Complex sin() { return new Complex(Math.Sin(_a) * Math.Cosh(_b), Math.Cos(_a) * Math.Sinh(_b)); }
 		public Complex cos() { return new Complex(Math.Cos(_a) * Math.Cosh(_b), -Math.Sin(_a) * Math.Sinh(_b)); }
 		public Complex tan() { return sin() / cos(); }
 
-		public static implicit operator Complex(double l) { return new Complex(l, 0); }
-		public static bool operator ==(Complex l, Complex r) { return (l._a == r._a) && (l._b == r._b); }
-		public static bool operator !=(Complex l, Complex r) { return !((l._a == r._a) && (l._b == r._b)); }
-		public static double dot(Complex l, Complex r) { return l._a * r._a + l._b * r._b; }
-		public static Complex Cis(double r, double th) { return new Complex(r * Math.Cos(th), r * Math.Sin(th)); }
-		public static Complex operator +(Complex l, Complex r) { return new Complex(l._a + r._a, l._b + r._b); }
-		public static Complex operator +(Complex l, double r) { return new Complex(l._a + r, l._b); }
-		public static Complex operator +(double l, Complex r) { return new Complex(l + r._a, r._b); }
-		public static Complex operator -(Complex l, Complex r) { return new Complex(l._a - r._a, l._b - r._b); }
-		public static Complex operator -(Complex l, double r) { return new Complex(l._a - r, l._b); }
-		public static Complex operator -(double l, Complex r) { return new Complex(l - r._a, -r._b); }
-		public static Complex operator *(Complex l, Complex r) {
-			return new Complex(l._a * r._a - l._b * r._b, l._a * r._b + r._a * l._b);
+		public static implicit operator Complex(double L) { return new Complex(L, 0); }
+		public static Complex operator -(Complex L) { return new Complex(-L._a, -L._b); }
+		public static bool operator ==(Complex L, Complex R) { return (L._a == R._a) && (L._b == R._b); }
+		public static bool operator !=(Complex L, Complex R) { return !((L._a == R._a) && (L._b == R._b)); }
+		public static double dot(Complex L, Complex R) { return L._a * R._a + L._b * R._b; }
+		public static Complex Cis(double R, double T) { return new Complex(R * Math.Cos(T), R * Math.Sin(T)); }
+		public static Complex operator +(Complex L, Complex R) { return new Complex(L._a + R._a, L._b + R._b); }
+		public static Complex operator +(Complex L, double R) { return new Complex(L._a + R, L._b); }
+		public static Complex operator +(double L, Complex R) { return new Complex(L + R._a, R._b); }
+		public static Complex operator -(Complex L, Complex R) { return new Complex(L._a - R._a, L._b - R._b); }
+		public static Complex operator -(Complex L, double R) { return new Complex(L._a - R, L._b); }
+		public static Complex operator -(double L, Complex R) { return new Complex(L - R._a, -R._b); }
+		public static Complex operator *(Complex L, Complex R) {
+			return new Complex(L._a * R._a - L._b * R._b, L._a * R._b + R._a * L._b);
 		}
-		public static Complex operator *(Complex l, double r) { return new Complex(l._a * r, l._b * r); }
-		public static Complex operator *(double l, Complex r) { return new Complex(l * r._a, l * r._b); }
-		public static Complex operator /(Complex l, Complex r) {
-			return r._r2 == 0 ? new Complex(double.NaN, double.NaN) :
-			new Complex((l._a * r._a + l._b * r._b) / r._r2, (l._b * r._a - l._a * r._b) / r._r2);
+		public static Complex operator *(Complex L, double R) { return new Complex(L._a * R, L._b * R); }
+		public static Complex operator *(double L, Complex R) { return new Complex(L * R._a, L * R._b); }
+		public static Complex operator /(Complex L, Complex R) {
+			if(R.quick) R.abi(R._a, R._b, true); return R._r2 == 0 ? new Complex(double.NaN, double.NaN) :
+			new Complex((L._a * R._a + L._b * R._b) / R._r2, (L._b * R._a - L._a * R._b) / R._r2);
 		}
-		public static Complex operator /(Complex l, double r) {
-			return r == 0 ? new Complex(double.NaN, double.NaN) : new Complex(l._a / r, l._b / r);
+		public static Complex operator /(Complex L, double R) {
+			return R == 0 ? new Complex(double.NaN, double.NaN) : new Complex(L._a / R, L._b / R);
 		}
-		public static Complex operator /(double l, Complex r) {
-			return r._r2 == 0 ? new Complex(double.NaN, double.NaN) :
-			new Complex((l * r._a) / r._r2, (-l * r._b) / r._r2);
+		public static Complex operator /(double L, Complex R) {
+			if(R.quick) R.abi(R._a, R._b, true); return R._r2 == 0 ? new Complex(double.NaN, double.NaN) :
+			new Complex((L * R._a) / R._r2, (-L * R._b) / R._r2);
 		}
-		public static Complex operator ^(Complex l, Complex r) {
-			if(r._b == 0) return l ^ r._a;
-			return Cis(Math.Pow(l._r, r._a) * Math.Exp(-r._b * l._t), r._b * Math.Log(l._r) + r._a * l._t);
+		public static Complex operator ^(Complex L, Complex R) {
+			if(L.quick) L.abi(L._a, L._b, true); if(R.quick) R.abi(R._a, R._b, true); if(R._b == 0) return L ^ R._a;
+			return Cis(Math.Pow(L._r, R._a) * Math.Exp(-R._b * L._t), R._b * Math.Log(L._r) + R._a * L._t);
 		}
-		public static Complex operator ^(Complex l, double r) { return Cis(Math.Pow(l._r, r), r * l._t); }
-		public static Complex operator ^(double l, Complex r) {
-			double lr = Math.Abs(l), lt = l < 0 ? Math.PI : 0;
-			return Cis(Math.Pow(lr, r._a) * Math.Exp(-r._b * lt), r._b * Math.Log(Math.Abs(l)) + r._a * lt);
+		public static Complex operator ^(Complex L, double R) { if(L.quick) L.abi(L._a, L._b, true); return Cis(Math.Pow(L._r, R), R * L._t); }
+		public static Complex operator ^(double L, Complex R) {
+			double lr = Math.Abs(L), lt = L < 0 ? Math.PI : 0;
+			return Cis(Math.Pow(lr, R._a) * Math.Exp(-R._b * lt), R._b * Math.Log(Math.Abs(L)) + R._a * lt);
 		}
 
 
@@ -362,11 +371,13 @@ namespace NihilKri {
 		public static int SortR(Complex L, Complex R) {
 			if(L.Equals(null) && R.Equals(null)) return 0;
 			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L.quick) L.abi(L._a, L._b, true); if(R.quick) R.abi(R._a, R._b, true);
 			if(L._r == R._r) return L._t.CompareTo(R._t); return L._r.CompareTo(R._r);
 		}
 		public static int SortT(Complex L, Complex R) {
 			if(L.Equals(null) && R.Equals(null)) return 0;
 			if(L.Equals(null)) return -1; if(R.Equals(null)) return 1;
+			if(L.quick) L.abi(L._a, L._b, true); if(R.quick) R.abi(R._a, R._b, true);
 			if(L._t == R._t) return L._r.CompareTo(R._r); return L._t.CompareTo(R._t);
 		}
 
